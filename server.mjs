@@ -1,5 +1,5 @@
 import express from "express";
-import cors from "cors";
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -52,7 +52,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 const app = express();
-app.use(cors());
+// cors enabled via Render
 app.use(express.json());
 
 app.get("/sse", async (req, res) => {
@@ -71,4 +71,4 @@ app.post("/messages", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => console.log("MCP HTTP Server on http://localhost:" + PORT + "/sse"));
+app.get("/",(r,s)=>s.send("ok"));process.on("uncaughtException",e=>console.error("CRASH:",e));app.listen(PORT, "0.0.0.0", () => console.log("MCP HTTP Server on http://localhost:" + PORT + "/sse"));
