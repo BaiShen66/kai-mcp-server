@@ -52,23 +52,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 const app = express();
-// cors enabled via Render
 app.use(express.json());
 
+app.get("/", (req, res) => res.send("ok"));
+
 app.get("/sse", async (req, res) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  const transport = new SSEServerTransport("/messages", res);
-  activeTransport = transport;
-  await server.connect(transport);
-  req.on("close", () => { activeTransport = null; });
+  try {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    const transport = new SSEServerTransport("/messages", res);
+    activeTransport = transport;
+    await server.connect(transport);
+    req.on("close", () => { activeTransport = null; });
+  } catch (e) {
+    console.error("SSE error:", e);
+    if (!res.headersSent) res.status(500).send("SSE error: " + e.message);
+  }
 });
 
 app.post("/messages", async (req, res) => {
-  if (!activeTransport) return res.status(400).json({ error: "无活跃SSE连接" });
-  await activeTransport.handlePostMessage(req, res);
+  try {
+    if (!activeTransport) return res.status(400).json({ error: "无活跃SSE连接" });
+    await activeTransport.handlePostMessage(req, res);
+  } catch (e) {
+    console.error("Messages error:", e);
+    if (!res.headersSent) res.status(500).json({ error: e.message });
+  }
 });
 
+process.on("uncaughtException", e => console.error("UNCAUGHT:", e));
+process.on("unhandledRejection", e => console.error("UNHANDLED:", e));
+
 const PORT = process.env.PORT || 3000;
-app.get("/",(r,s)=>s.send("ok"));process.on("uncaughtException",e=>console.error("CRASH:",e));app.listen(PORT, "0.0.0.0", () => console.log("MCP HTTP Server on http://localhost:" + PORT + "/sse"));
+app.listen(PORT, "0.0.0.0", () => console.log("MCP HTTP Server on http://0.0.0.0:" + PORT + "/sse"));
