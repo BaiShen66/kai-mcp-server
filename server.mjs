@@ -233,4 +233,4 @@ app.post("/mcp", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log("Bilibili + WeChat MCP Server on port " + PORT)
-);));
+);
