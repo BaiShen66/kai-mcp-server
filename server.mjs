@@ -57,6 +57,7 @@ app.use(express.json());
 
 app.get("/", (req, res) => res.send("ok"));
 
+// === SSE 传输 (兼容旧版 MCP 客户端) ===
 app.get("/sse", async (req, res) => {
   try {
     res.setHeader("Content-Type", "text/event-stream");
@@ -80,6 +81,25 @@ app.post("/messages", async (req, res) => {
     console.error("Messages error:", e);
     if (!res.headersSent) res.status(500).json({ error: e.message });
   }
+});
+
+// === Streamable HTTP 传输 (新版 MCP 规范，单一 /mcp 端点) ===
+app.post("/mcp", async (req, res) => {
+  try {
+    const response = await server.handleMessage(req.body);
+    if (response) {
+      res.json(response);
+    } else {
+      res.status(204).end();
+    }
+  } catch (e) {
+    console.error("MCP error:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get("/mcp", (req, res) => {
+  res.json({ name: "kai-mcp", version: "1.0", capabilities: { tools: TOOLS } });
 });
 
 process.on("uncaughtException", e => console.error("UNCAUGHT:", e));
