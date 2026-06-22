@@ -1,5 +1,5 @@
 import express from "express";
-
+import cors from "cors";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -52,6 +52,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => res.send("ok"));
